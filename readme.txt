@@ -34,6 +34,10 @@ Features in Smart Maintenance Mode 1.0 include:
 Upload the Smart Maintenance Mode plugin to your blog, Activate it.
 That's it. You're done!
 
+== Screenshots ==
+
+1. Admin panel options to manage Smart Maintenance mode
+
 == Changelog ==
 
 = 1.0 =
