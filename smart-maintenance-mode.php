@@ -1,13 +1,13 @@
 <?php
 /**
  * @package smart-maintenance-mode
- * @version 1.0
+ * @version 1.1
  */
 /*
 Plugin Name: Smart Maintenance Mode
 Plugin URI: http://wordpress.org/extend/plugins/smart-maintenance-mode/
 Description: Smart Maintenance Mode is a plugin which allows you to set your site to maintenance mode so that your readers see the Coming Soon page while you can see the actual development of your site. You can create ranges and define the IP range which will see the actual site using Smart Maintenance Mode.
-Version: 1.0
+Version: 1.1
 Author: Brijesh Kothari
 Author URI: http://www.wpinspired.com/
 License: GPLv3 or later
@@ -34,7 +34,7 @@ if(!function_exists('add_action')){
 	exit;
 }
 
-define('smm_version', '1.0');
+define('smm_version', '1.1');
 
 // Ok so we are now ready to go
 register_activation_hook( __FILE__, 'smart_maintenance_mode_activation');
@@ -268,8 +268,27 @@ function smart_maintenance_mode_option_page(){
 		$options['disable_smm'] = (smm_is_checked('disable_smm') ? 1 : 0);
 		$smart_maintenance_mode_options['smm_heading'] = $_POST['smm_heading'];
 		$smart_maintenance_mode_options['smm_subheading'] = $_POST['smm_subheading'];
+		$options['del_smm_image'] = (smm_is_checked('del_smm_image') ? 1 : 0);
+		$options['del_smm_heading'] = (smm_is_checked('del_smm_heading') ? 1 : 0);
+		$options['del_smm_subheading'] = (smm_is_checked('del_smm_subheading') ? 1 : 0);
 
 		$smart_maintenance_mode_options = smm_sanitize_variables($smart_maintenance_mode_options);
+	
+		if(!empty($options['del_smm_image'])){
+			$smm_image = get_option('smm_image');
+			update_option('smm_image', '');
+			@unlink(dirname(__FILE__)."/images/".$smm_image);
+		}
+	
+		if(!empty($options['del_smm_heading'])){
+			update_option('smm_heading', '');
+			$_POST['smm_heading'] = '';
+		}
+	
+		if(!empty($options['del_smm_subheading'])){
+			update_option('smm_subheading', '');
+			$_POST['smm_subheading'] = '';
+		}
 		
 		if(!empty($_FILES["smm_file"]["name"])){
 			$allowedExts = array("gif", "jpeg", "jpg", "png");
@@ -306,11 +325,11 @@ function smart_maintenance_mode_option_page(){
 			
 			update_option('disable_smm', $options['disable_smm']);	
 		
-			if(!empty($smart_maintenance_mode_options['smm_heading'])){			
+			if(!empty($smart_maintenance_mode_options['smm_heading']) && empty($options['del_smm_heading'])){			
 				update_option('smm_heading', $smart_maintenance_mode_options['smm_heading']);			
 			}
 			
-			if(!empty($smart_maintenance_mode_options['smm_subheading'])){			
+			if(!empty($smart_maintenance_mode_options['smm_subheading']) && empty($options['del_smm_subheading'])){			
 				update_option('smm_subheading', $smart_maintenance_mode_options['smm_subheading']);			
 			}
 			
@@ -438,6 +457,7 @@ function smart_maintenance_mode_option_page(){
 	$disable_smm = get_option('disable_smm');
 	$smm_heading = get_option('smm_heading');
 	$smm_subheading = get_option('smm_subheading');
+	$smm_image = get_option('smm_image');
 	
 	?>
     
@@ -452,27 +472,43 @@ function smart_maintenance_mode_option_page(){
 		<?php wp_nonce_field('smart-maintenance-mode-options'); ?>
 	    <table class="form-table">
 		  <tr>
-			<th scope="row" valign="top"><?php echo __('Disable Maintenance Mode','smart-maintenance-mode'); ?></th>
+			<th scope="row" valign="top"><?php echo __('Maintenance Mode Status','smart-maintenance-mode'); ?></th>
 			<td>
-			  <input type="checkbox" <?php if(!empty($disable_smm) || smm_is_checked('disable_smm')) echo 'checked="checked"'; ?> name="disable_smm" /> <?php echo __('Select the checkbox to disable Maintenance Mode for your site','smart-maintenance-mode'); ?> <br />
+            	<input type="radio" <?php if(empty($disable_smm) || $_POST['disable_smm'] == 0) echo 'checked="checked"'; ?> name="disable_smm" value="0"/> Enabled &nbsp; &nbsp;
+                <input type="radio" <?php if(!empty($disable_smm) || $_POST['disable_smm'] == 1) echo 'checked="checked"'; ?> name="disable_smm" value="1" /> Disabled
 			</td>
 		  </tr>
 		  <tr>
 			<th scope="row" valign="top"><?php echo __('Heading','smart-maintenance-mode'); ?></th>
 			<td>
-			  <input type="text" size="25" value="<?php echo((isset($_POST['smm_heading']) ? $_POST['smm_heading'] : (!empty($smm_heading) ? $smm_heading : ''))); ?>" name="smm_heading" /> <?php echo __('Enter the Heading for Maintenance Mode page','smart-maintenance-mode'); ?> <br />
+			  <input type="text" size="25" value="<?php echo((isset($_POST['smm_heading']) ? $_POST['smm_heading'] : (!empty($smm_heading) ? $smm_heading : ''))); ?>" name="smm_heading" /> <?php echo __('Enter the Heading for Maintenance Mode page','smart-maintenance-mode'); ?> <br /><br />
+                <?php if(!empty($smm_heading)){
+					echo '<input type="checkbox" name="del_smm_heading" '.(smm_is_checked('del_smm_heading') ? 'checked="checked"' : '').' />';
+					echo __('Choose this checkbox to use default Heading ','smart-maintenance-mode');
+				}
+				?>
 			</td>
 		  </tr>
 		  <tr>
 			<th scope="row" valign="top"><?php echo __('Sub Heading','smart-maintenance-mode'); ?></th>
 			<td>
-			  <input type="text" size="25" value="<?php echo((isset($_POST['smm_subheading']) ? $_POST['smm_subheading'] : (!empty($smm_subheading) ? $smm_subheading : ''))); ?>" name="smm_subheading" /> <?php echo __('Enter the Sub Heading for Maintenance Mode page','smart-maintenance-mode'); ?> <br />
+			  <input type="text" size="25" value="<?php echo((isset($_POST['smm_subheading']) ? $_POST['smm_subheading'] : (!empty($smm_subheading) ? $smm_subheading : ''))); ?>" name="smm_subheading" /> <?php echo __('Enter the Sub Heading for Maintenance Mode page','smart-maintenance-mode'); ?> <br /><br />
+                <?php if(!empty($smm_subheading)){
+					echo '<input type="checkbox" name="del_smm_subheading" '.(smm_is_checked('del_smm_subheading') ? 'checked="checked"' : '').' />';
+					echo __('Choose this checkbox to use default Sub Heading ','smart-maintenance-mode');
+				}
+				?>
 			</td>
 		  </tr>
 		  <tr>
 			<th scope="row" valign="top"><?php echo __('Choose custom image','smart-maintenance-mode'); ?></th>
 			<td>
-                <input type="file" name="smm_file" id="smm_file" /> <?php echo __('This will display the image you upload on Maintenance mode page. ','smart-maintenance-mode'); ?> <br />
+                <input type="file" name="smm_file" id="smm_file" /> <?php echo __('This will display the image you upload on Maintenance mode page','smart-maintenance-mode'); ?> <br /><br />
+                <?php if(!empty($smm_image)){
+					echo '<input type="checkbox" name="del_smm_image" '.(smm_is_checked('del_smm_image') ? 'checked="checked"' : '').' />';
+					echo __('Choose this checkbox to delete the current Custom image ','smart-maintenance-mode');
+				}
+				?>
 			</td>
 		  </tr>
 		</table><br />
