@@ -1,13 +1,13 @@
 <?php
 /**
  * @package smart-maintenance-mode
- * @version 1.1
+ * @version 1.2
  */
 /*
 Plugin Name: Smart Maintenance Mode
 Plugin URI: http://wordpress.org/extend/plugins/smart-maintenance-mode/
 Description: Smart Maintenance Mode is a plugin which allows you to set your site to maintenance mode so that your readers see the Coming Soon page while you can see the actual development of your site. You can create ranges and define the IP range which will see the actual site using Smart Maintenance Mode.
-Version: 1.1
+Version: 1.2
 Author: Brijesh Kothari
 Author URI: http://www.wpinspired.com/
 License: GPLv3 or later
@@ -34,7 +34,7 @@ if(!function_exists('add_action')){
 	exit;
 }
 
-define('smm_version', '1.1');
+define('smm_version', '1.2');
 
 // Ok so we are now ready to go
 register_activation_hook( __FILE__, 'smart_maintenance_mode_activation');
@@ -85,7 +85,7 @@ global $wpdb;
 
 function maintenance_mode_page(){
 	
-	global $wpdb;
+	global $wpdb, $current_user;
 	
 	$logged_ip = smm_getip();
 	$result = '';
@@ -93,6 +93,9 @@ function maintenance_mode_page(){
 	$smm_heading = get_option('smm_heading');
 	$smm_subheading = get_option('smm_subheading');
 	$smm_image = get_option('smm_image');
+	$smm_roles = unserialize(get_option('smm_roles'));	
+	
+	$current_user_role = current($current_user->roles);
 	
 	$smm_heading = (!empty($smm_heading) ? $smm_heading : 'Website Under Maintenance');
 	$smm_subheading = (!empty($smm_subheading) ? $smm_subheading : 'This website is currently under going maintenance. We will be back online shortly. Please check back later !');
@@ -101,7 +104,7 @@ function maintenance_mode_page(){
 	$result = smm_selectquery($query);
 	
 	// Show the maintenance mode page
-	if(empty($disable_smm) && (empty($result) || !empty($_REQUEST['smm_preview']))){
+	if(!empty($_REQUEST['smm_preview']) || ((empty($result) && empty($smm_roles[$current_user_role]) && empty($disable_smm)))){
 		
 		echo '<title>'.get_option('blogname').' | Maintenance Mode</title>';
 		
@@ -251,7 +254,7 @@ function smm_objectToArray($d){
 
 function smart_maintenance_mode_option_page(){
 
-	global $wpdb;
+	global $wpdb, $wp_roles;
 	 
 	if(!current_user_can('manage_options')){
 		wp_die('Sorry, but you do not have permissions to change settings.');
@@ -260,6 +263,24 @@ function smart_maintenance_mode_option_page(){
 	/* Make sure post was from this page */
 	if(count($_POST) > 0){
 		check_admin_referer('smart-maintenance-mode-options');
+	}
+	
+	if(isset($_POST['save_user_roles'])){
+		$_user_roles = array();
+		
+		foreach($wp_roles->roles as $srk => $srv){
+			$_user_roles[$srk] = (smm_is_checked('role_'.$srk) ? 1 : 0);
+		}
+		
+		update_option('smm_roles', serialize($_user_roles));		
+
+		$saved = true;
+			
+		if(!empty($saved)){
+			echo '<div id="message" class="updated fade"><p>'
+				. __('The settings were saved successfully', 'smart-maintenance-mode')
+				. '</p></div>';
+		}
 	}
 	
 	if(isset($_POST['save_smm'])){
@@ -458,6 +479,8 @@ function smart_maintenance_mode_option_page(){
 	$smm_heading = get_option('smm_heading');
 	$smm_subheading = get_option('smm_subheading');
 	$smm_image = get_option('smm_image');
+	$smm_roles = unserialize(get_option('smm_roles'));
+	//print_r($smm_roles);
 	
 	?>
     
@@ -513,6 +536,28 @@ function smart_maintenance_mode_option_page(){
 		  </tr>
 		</table><br />
 		<input name="save_smm" class="button action" value="<?php echo __('Save Settings','smart-maintenance-mode'); ?>" type="submit" />		
+	  </form>
+      
+      <br /><br />
+      <hr />      
+	  <h2><?php echo __('Disable Maintenance Mode for User Roles','smart-maintenance-mode'); ?></h2>
+	  <?php echo __('Choose the User Roles to see the actual site when the users are logged in with that user role','smart-maintenance-mode'); ?>
+      
+	  <form action="options-general.php?page=smart-maintenance-mode" method="post">
+		<?php wp_nonce_field('smart-maintenance-mode-options'); ?>
+	    <table class="form-table">
+		  <tr>
+          	<td>
+				<?php
+                    foreach($wp_roles->roles as $rk => $rv){
+                        echo '<input type="checkbox" '.(!empty($smm_roles[$rk]) ? 'checked="checked"' : '').' name="role_'.$rk.'" /> ';
+                        echo __($rv['name'].'&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;', 'smart-maintenance-mode');
+                    }			
+                ?>
+            </td>
+		  </tr>
+		</table><br />
+		<input name="save_user_roles" class="button action" value="<?php echo __('Save Settings','smart-maintenance-mode'); ?>" type="submit" />		
 	  </form>
       
       <br /><br />
