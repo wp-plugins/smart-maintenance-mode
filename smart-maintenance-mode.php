@@ -1,13 +1,13 @@
 <?php
 /**
  * @package smart-maintenance-mode
- * @version 1.3
+ * @version 1.3.1
  */
 /*
 Plugin Name: Smart Maintenance Mode
 Plugin URI: http://wordpress.org/extend/plugins/smart-maintenance-mode/
 Description: Smart Maintenance Mode is a plugin which allows you to set your site to maintenance mode so that your readers see the Coming Soon page while you can see the actual development of your site. You can create ranges and define the IP range which will see the actual site using Smart Maintenance Mode.
-Version: 1.3
+Version: 1.3.1
 Author: Brijesh Kothari
 Author URI: http://www.wpinspired.com/
 License: GPLv3 or later
@@ -34,7 +34,7 @@ if(!function_exists('add_action')){
 	exit;
 }
 
-define('smm_version', '1.3');
+define('smm_version', '1.3.1');
 
 // Ok so we are now ready to go
 register_activation_hook( __FILE__, 'smart_maintenance_mode_activation');
@@ -520,9 +520,9 @@ function smart_maintenance_mode_option_page(){
 			</td>
 		  </tr>
 		  <tr>
-			<th scope="row" valign="top"><?php echo __('Heading','smart-maintenance-mode'); ?></th>
+			<th scope="row" valign="top"><label for="smm_heading"><?php echo __('Heading','smart-maintenance-mode'); ?></label></th>
 			<td>
-			  <input type="text" size="25" value="<?php echo(htmlentities(isset($_POST['smm_heading']) ? stripslashes($_POST['smm_heading']) : (!empty($smm_heading) ? $smm_heading : ''))); ?>" name="smm_heading" /> <?php echo __('Enter the Heading for Maintenance Mode page','smart-maintenance-mode'); ?> <br /><br />
+			  <input type="text" size="25" value="<?php echo(htmlentities(isset($_POST['smm_heading']) ? stripslashes($_POST['smm_heading']) : (!empty($smm_heading) ? $smm_heading : ''))); ?>" name="smm_heading" id="smm_heading" /> <?php echo __('Enter the Heading for Maintenance Mode page','smart-maintenance-mode'); ?> <br /><br />
                 <?php if(!empty($smm_heading)){
 					echo '<input type="checkbox" name="del_smm_heading" '.(smm_is_checked('del_smm_heading') ? 'checked="checked"' : '').' />';
 					echo __('Choose this checkbox to use default Heading ','smart-maintenance-mode');
@@ -531,9 +531,9 @@ function smart_maintenance_mode_option_page(){
 			</td>
 		  </tr>
 		  <tr>
-			<th scope="row" valign="top"><?php echo __('Sub Heading','smart-maintenance-mode'); ?></th>
+			<th scope="row" valign="top"><label for="smm_subheading"><?php echo __('Sub Heading','smart-maintenance-mode'); ?></label></th>
 			<td>
-			  <input type="text" size="25" value="<?php echo(htmlentities(isset($_POST['smm_subheading']) ? stripslashes($_POST['smm_subheading']) : (!empty($smm_subheading) ? $smm_subheading : ''))); ?>" name="smm_subheading" /> <?php echo __('Enter the Sub Heading for Maintenance Mode page','smart-maintenance-mode'); ?> <br /><br />
+			  <input type="text" size="25" value="<?php echo(htmlentities(isset($_POST['smm_subheading']) ? stripslashes($_POST['smm_subheading']) : (!empty($smm_subheading) ? $smm_subheading : ''))); ?>" name="smm_subheading" id="smm_subheading"/> <?php echo __('Enter the Sub Heading for Maintenance Mode page','smart-maintenance-mode'); ?> <br /><br />
                 <?php if(!empty($smm_subheading)){
 					echo '<input type="checkbox" name="del_smm_subheading" '.(smm_is_checked('del_smm_subheading') ? 'checked="checked"' : '').' />';
 					echo __('Choose this checkbox to use default Sub Heading ','smart-maintenance-mode');
@@ -554,7 +554,7 @@ function smart_maintenance_mode_option_page(){
 		  </tr>
           
 		  <tr>
-			<th scope="row" valign="top"><?php echo __('Custom HTML content','smart-maintenance-mode'); ?></th>
+			<th scope="row" valign="top"><label for="smm_html"><?php echo __('Custom HTML content','smart-maintenance-mode'); ?></label></th>
 			<td>
             	<textarea rows="4" cols="50" name="smm_html" id="smm_html"><?php echo(htmlentities(isset($_POST['smm_html']) ? stripslashes($_POST['smm_html']) : (!empty($smm_html) ? $smm_html : ''))); ?></textarea>
                 <br />
@@ -605,15 +605,15 @@ function smart_maintenance_mode_option_page(){
 		<?php wp_nonce_field('smart-maintenance-mode-options'); ?>
 	    <table class="form-table">
 		  <tr>
-			<th scope="row" valign="top"><?php echo __('Start IP','smart-maintenance-mode'); ?></th>
+			<th scope="row" valign="top"><label for="start_ip"><?php echo __('Start IP','smart-maintenance-mode'); ?></label></th>
 			<td>
-			  <input type="text" size="25" value="<?php echo((isset($_POST['start_ip']) ? $_POST['start_ip'] : '')); ?>" name="start_ip" /> <?php echo __('Start IP of the range','smart-maintenance-mode'); ?> <br />
+			  <input type="text" size="25" value="<?php echo((isset($_POST['start_ip']) ? $_POST['start_ip'] : '')); ?>" name="start_ip" id="start_ip"/> <?php echo __('Start IP of the range','smart-maintenance-mode'); ?> <br />
 			</td>
 		  </tr>
 		  <tr>
-			<th scope="row" valign="top"><?php echo __('End IP','smart-maintenance-mode'); ?></th>
+			<th scope="row" valign="top"><label for="end_ip"><?php echo __('End IP','smart-maintenance-mode'); ?></label></th>
 			<td>
-			  <input type="text" size="25" value="<?php echo((isset($_POST['end_ip']) ? $_POST['end_ip'] : '')); ?>" name="end_ip" /> <?php echo __('End IP of the range','smart-maintenance-mode'); ?> <br />
+			  <input type="text" size="25" value="<?php echo((isset($_POST['end_ip']) ? $_POST['end_ip'] : '')); ?>" name="end_ip" id="end_ip"/> <?php echo __('End IP of the range','smart-maintenance-mode'); ?> <br />
 			</td>
 		  </tr>
 		  <tr>
@@ -663,7 +663,7 @@ function smart_maintenance_mode_option_page(){
 	}
 	
 	echo '<br /><br /><br /><br /><hr />
-	Smart Maintenance Mode is developed by <a href="http://wpinspired.com" target="_blank">WP Inspired</a>. 
+	Smart Maintenance Mode v'.smm_version.' is developed by <a href="http://wpinspired.com" target="_blank">WP Inspired</a>. 
 	You can report any bugs <a href="http://wordpress.org/support/plugin/smart-maintenance-mode" target="_blank">here</a>. 
 	You can provide any valuable feedback <a href="http://www.wpinspired.com/contact-us/" target="_blank">here</a>.
 	<a href="http://www.wpinspired.com/smart-maintenance-mode" target="_blank">Donate</a>';
