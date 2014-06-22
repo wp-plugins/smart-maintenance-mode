@@ -1,13 +1,13 @@
 <?php
 /**
  * @package smart-maintenance-mode
- * @version 1.3.1
+ * @version 1.4
  */
 /*
 Plugin Name: Smart Maintenance Mode
 Plugin URI: http://wordpress.org/extend/plugins/smart-maintenance-mode/
 Description: Smart Maintenance Mode is a plugin which allows you to set your site to maintenance mode so that your readers see the Coming Soon page while you can see the actual development of your site. You can create ranges and define the IP range which will see the actual site using Smart Maintenance Mode.
-Version: 1.3.1
+Version: 1.4
 Author: Brijesh Kothari
 Author URI: http://www.wpinspired.com/
 License: GPLv3 or later
@@ -34,7 +34,7 @@ if(!function_exists('add_action')){
 	exit;
 }
 
-define('smm_version', '1.3.1');
+define('smm_version', '1.4');
 
 // Ok so we are now ready to go
 register_activation_hook( __FILE__, 'smart_maintenance_mode_activation');
@@ -93,8 +93,9 @@ function maintenance_mode_page(){
 	$smm_heading = base64_decode(get_option('smm_heading'));
 	$smm_subheading = base64_decode(get_option('smm_subheading'));
 	$smm_image = get_option('smm_image');
-	$smm_roles = unserialize(get_option('smm_roles'));	
+	$smm_roles = unserialize(get_option('smm_roles'));
 	$smm_html = base64_decode(get_option('smm_html'));
+	$smm_countdown = unserialize(get_option('smm_countdown'));
 	
 	$current_user_role = current($current_user->roles);
 	
@@ -110,6 +111,64 @@ function maintenance_mode_page(){
 		if(!empty($smm_html)){
 			echo $smm_html;
 			exit;
+		}
+		
+		if(!empty($smm_countdown)){
+						
+			// What is the countdown date ?
+			$count_date = (float) $smm_countdown['year'].$smm_countdown['month'].$smm_countdown['day'].$smm_countdown['hour'].$smm_countdown['minute'].$smm_countdown['second'];
+			
+			$cur_date = date('YmdHis');
+			
+			// Just for debug
+			if(!empty($_GET['debug'])){
+				echo $cur_date.'<br />';
+				echo $count_date.'<br />';
+			}
+			
+			// If we have passed the coundown time we need to exit
+			if($cur_date >= $count_date){
+				return true;
+			}
+		
+			echo '<script src="wp-content/plugins/smart-maintenance-mode/js/countdown.js" type="text/javascript"></script>';			
+			echo '<title>'.get_option('blogname').' | Maintenance Mode</title>';
+			echo '<br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br />';
+			
+			if(!empty($smm_countdown['heading'])){
+				echo '<div align="center" style="font-family: Verdana; color: black;">';
+				echo '<h1>'.base64_decode($smm_countdown['heading']).'</h1>';
+				echo '</div>';
+			}
+			
+			echo '<center>
+				<script type="application/javascript">
+				
+					function smm_done_handler(){
+						window.location.href =  "'.get_option('siteurl').'";
+					}
+					
+					var offset = (new Date().getTimezoneOffset()/60) * -1;
+					
+					var myCountdown1 = new Countdown({
+						year: '.$smm_countdown['year'].', 
+						month: '.$smm_countdown['month'].',
+						day: '.$smm_countdown['day'].',
+						hour: '.$smm_countdown['hour'].',
+						minute: '.$smm_countdown['minute'].',
+						second: '.$smm_countdown['second'].',
+						width:550,
+						height:90,
+						onComplete : smm_done_handler,
+						rangeHi:"'.($smm_countdown['year'] == date('Y') ? 'month' : 'year').'",
+						offset: offset,
+						style:"flip"	// <- no comma on last item!
+					});
+				</script>
+			</center>';
+			
+			exit;
+		
 		}
 		
 		echo '<title>'.get_option('blogname').' | Maintenance Mode</title>';
@@ -295,14 +354,51 @@ function smart_maintenance_mode_option_page(){
 		$smart_smm_heading = base64_encode(stripslashes(trim($_POST['smm_heading'])));
 		$smart_smm_subheading = base64_encode(stripslashes(trim($_POST['smm_subheading'])));
 		$smart_smm_html = base64_encode(stripslashes(trim($_POST['smm_html'])));
+		$smm_countdown_year = trim($_POST['smm_countdown_year']);
+		$smm_countdown_month = trim($_POST['smm_countdown_month']);
+		$smm_countdown_day = trim($_POST['smm_countdown_day']);
+		$smm_countdown_hour = trim($_POST['smm_countdown_hour']);
+		$smm_countdown_minute = trim($_POST['smm_countdown_minute']);
+		$smm_countdown_second = trim($_POST['smm_countdown_second']);
+		
+		// Default values
+		if(!empty($smm_countdown_year)){
+			
+			if(empty($smm_countdown_month)){
+				$smm_countdown_month = '01';
+			}
+			
+			if(empty($smm_countdown_day)){
+				$smm_countdown_day = '01';
+			}
+			
+			if(empty($smm_countdown_hour)){
+				$smm_countdown_hour = '00';
+			}
+			
+			if(empty($smm_countdown_minute)){
+				$smm_countdown_minute = '00';
+			}
+			
+			if(empty($smm_countdown_second)){
+				$smm_countdown_second = '00';
+			}
+		}
 		
 		$options['del_smm_image'] = (smm_is_checked('del_smm_image') ? 1 : 0);
 		$options['del_smm_heading'] = (smm_is_checked('del_smm_heading') ? 1 : 0);
 		$options['del_smm_subheading'] = (smm_is_checked('del_smm_subheading') ? 1 : 0);
 		$options['del_smm_html'] = (smm_is_checked('del_smm_html') ? 1 : 0);
+		$options['del_smm_countdown'] = (smm_is_checked('del_smm_countdown') ? 1 : 0);
 
 		$smart_maintenance_mode_options = smm_sanitize_variables($smart_maintenance_mode_options);
 	
+		if(!empty($smm_countdown_year)){
+			if(date('YmdHis') > $smm_countdown_year.$smm_countdown_month.$smm_countdown_day.$smm_countdown_hour.$smm_countdown_minute.$smm_countdown_second){
+				$error[] = 'The date for the Countdown cannot be a date in past';
+			}
+		}
+		
 		if(!empty($options['del_smm_image'])){
 			$smm_image = get_option('smm_image');
 			update_option('smm_image', '');
@@ -322,6 +418,16 @@ function smart_maintenance_mode_option_page(){
 		if(!empty($options['del_smm_html'])){
 			update_option('smm_html', '');
 			$_POST['smm_html'] = '';
+		}
+	
+		if(!empty($options['del_smm_countdown'])){
+			update_option('smm_countdown', '');
+			$_POST['smm_countdown_year'] = '';
+			$_POST['smm_countdown_month'] = '';
+			$_POST['smm_countdown_day'] = '';
+			$_POST['smm_countdown_hour'] = '';
+			$_POST['smm_countdown_minute'] = '';
+			$_POST['smm_countdown_second'] = '';
 		}
 		
 		if(!empty($_FILES["smm_file"]["name"])){
@@ -373,6 +479,19 @@ function smart_maintenance_mode_option_page(){
 			
 			if(!empty($smart_smm_html) && empty($options['del_smm_html'])){			
 				update_option('smm_html', $smart_smm_html);			
+			}
+			
+			if(!empty($smm_countdown_year) && empty($options['del_smm_countdown'])){
+				$smm_countdown = array();
+				$smm_countdown['heading'] = $smart_smm_heading;
+				$smm_countdown['year'] = $smm_countdown_year;
+				$smm_countdown['month'] = $smm_countdown_month;
+				$smm_countdown['day'] = $smm_countdown_day;
+				$smm_countdown['hour'] = $smm_countdown_hour;
+				$smm_countdown['minute'] = $smm_countdown_minute;
+				$smm_countdown['second'] = $smm_countdown_second;
+				$smm_countdown = serialize($smm_countdown);
+				update_option('smm_countdown', $smm_countdown);
 			}
 									
 			$saved = true;
@@ -498,7 +617,29 @@ function smart_maintenance_mode_option_page(){
 	$smm_image = get_option('smm_image');
 	$smm_roles = unserialize(get_option('smm_roles'));
 	$smm_html = base64_decode(get_option('smm_html'));
+	$smm_countdown = unserialize(get_option('smm_countdown'));
 	//print_r($smm_roles);
+	
+	$show_popup = 0;
+	$donate_popup = get_option('smm_donate_popup');
+	if(!empty($donate_popup)){
+		if($donate_popup <= date('Ymd', strtotime('-1 month'))){
+			$show_popup = 1;
+			update_option('smm_donate_popup', date('Ymd'));
+		}
+	}else{
+		$show_popup = 1;
+		update_option('smm_donate_popup', date('Ymd'));
+	}
+	
+	echo '<script>
+	var donate_popup = '.$show_popup.';
+	if(donate_popup == 1){
+		if(confirm("Donate $5 for Smart Maintenance Mode to support the development")){
+			window.location.href =  "http://www.wpinspired.com/smart-maintenance-mode";
+		}
+	}
+	</script>';
 	
 	?>
     
@@ -554,6 +695,75 @@ function smart_maintenance_mode_option_page(){
 		  </tr>
           
 		  <tr>
+			<th scope="row" valign="top"><?php echo __('Countdown','smart-maintenance-mode'); ?></th>
+			<td>
+            	Year :
+          		<select name="smm_countdown_year" id="smm_countdown_year">
+                	<option value="">-</option>
+                	<?php
+						for($i = 0; $i < 10; $i++){
+							echo '<option value="'.(date('Y') + $i).'" '.(($smm_countdown['year'] == (date('Y') + $i)) || ($_POST['smm_countdown_year'] == (date('Y') + $i)) ? 'selected="selected"' : '').'>'.(date('Y') + $i).'</option>';
+						}
+                    ?>
+                </select>
+            	&nbsp; Month :
+          		<select name="smm_countdown_month" id="smm_countdown_month">
+                	<option value="">-</option>
+                	<?php
+						for($i = 1; $i < 13; $i++){
+							echo '<option value="'.(strlen($i) < 2 ? '0'.$i : $i).'" '.(($smm_countdown['month'] == $i) || ($_POST['smm_countdown_month'] == $i) ? 'selected="selected"' : '').'>'.(strlen($i) < 2 ? '0'.$i : $i).'</option>';
+						}
+                    ?>
+                </select>
+            	&nbsp; Day :
+          		<select name="smm_countdown_day" id="smm_countdown_day">
+                	<option value="">-</option>
+                	<?php
+						for($i = 1; $i <= 31; $i++){
+							echo '<option value="'.(strlen($i) < 2 ? '0'.$i : $i).'" '.(($smm_countdown['day'] == $i) || ($_POST['smm_countdown_day'] == $i) ? 'selected="selected"' : '').'>'.(strlen($i) < 2 ? '0'.$i : $i).'</option>';
+						}
+                    ?>
+                </select>
+            	&nbsp; Hour :
+          		<select name="smm_countdown_hour" id="smm_countdown_hour">
+                	<option value="">-</option>
+                	<?php
+						for($i = 0; $i <= 24; $i++){
+							echo '<option value="'.(strlen($i) < 2 ? '0'.$i : $i).'" '.(($smm_countdown['hour'] == $i) || ($_POST['smm_countdown_hour'] == $i) ? 'selected="selected"' : '').'>'.(strlen($i) < 2 ? '0'.$i : $i).'</option>';
+						}
+                    ?>
+                </select>
+            	&nbsp; Minute :
+          		<select name="smm_countdown_minute" id="smm_countdown_minute">
+                	<option value="">-</option>
+                	<?php
+						for($i = 0; $i < 60; $i++){
+							echo '<option value="'.(strlen($i) < 2 ? '0'.$i : $i).'" '.(($smm_countdown['minute'] == $i) || ($_POST['smm_countdown_minute'] == $i) ? 'selected="selected"' : '').'>'.(strlen($i) < 2 ? '0'.$i : $i).'</option>';
+						}
+                    ?>
+                </select>
+            	&nbsp; Second :
+          		<select name="smm_countdown_second" id="smm_countdown_second">
+                	<option value="">-</option>
+                	<?php
+						for($i = 0; $i < 60; $i++){
+							echo '<option value="'.(strlen($i) < 2 ? '0'.$i : $i).'" '.(($smm_countdown['second'] == $i) || ($_POST['smm_countdown_second'] == $i) ? 'selected="selected"' : '').'>'.(strlen($i) < 2 ? '0'.$i : $i).'</option>';
+						}
+                    ?>
+                </select><br /><br />
+			  <?php echo __('Choose the time when your site will be live. <br /><br />Maintenance Mode will be disabled once the Countdown date is crossed.','smart-maintenance-mode'); ?><br /><br />
+              
+              <?php echo __('Current Server Time is '.date('r'), 'smart-maintenance-mode'); ?> <br /><br />
+              
+              <?php if(!empty($smm_countdown)){
+					echo '<input type="checkbox" name="del_smm_countdown" '.(smm_is_checked('del_smm_countdown') ? 'checked="checked"' : '').' />';
+					echo __('Choose this checkbox to remove the Countdown ','smart-maintenance-mode');
+				}
+				?>
+			</td>
+		  </tr>
+          
+		  <tr>
 			<th scope="row" valign="top"><label for="smm_html"><?php echo __('Custom HTML content','smart-maintenance-mode'); ?></label></th>
 			<td>
             	<textarea rows="4" cols="50" name="smm_html" id="smm_html"><?php echo(htmlentities(isset($_POST['smm_html']) ? stripslashes($_POST['smm_html']) : (!empty($smm_html) ? $smm_html : ''))); ?></textarea>
@@ -572,9 +782,10 @@ function smart_maintenance_mode_option_page(){
       <br />
       <h3>Content Preference for Maintenance Mode Page</h3>
       1. Custom HTML content<br />
-      2. Custom Image<br />
-      3. Custom Heading and Sub Heading<br />
-      4. Default Heading and Sub Heading
+      2. Countdown<br />
+      3. Custom Image<br />
+      4. Custom Heading and Sub Heading<br />
+      5. Default Heading and Sub Heading
       <br /><br />
       <hr />      
 	  <h2><?php echo __('Disable Maintenance Mode for User Roles','smart-maintenance-mode'); ?></h2>
@@ -686,6 +897,8 @@ delete_option('smm_subheading');
 delete_option('smm_image');
 delete_option('smm_roles');
 delete_option('smm_html');
+delete_option('smm_donate_popup');
+delete_option('smm_countdown');
 
 }
 
