@@ -537,8 +537,8 @@ function smart_maintenance_mode_option_page(){
 	if(isset($_POST['add_iprange'])){
 		global $smart_maintenance_mode_options;
 
-		$smart_maintenance_mode_options['start'] = $_POST['start_ip'];
-		$smart_maintenance_mode_options['end'] = $_POST['end_ip'];
+		$smart_maintenance_mode_options['start'] = trim($_POST['start_ip']);
+		$smart_maintenance_mode_options['end'] = trim($_POST['end_ip']);
 
 		$smart_maintenance_mode_options = smm_sanitize_variables($smart_maintenance_mode_options);
 				
@@ -818,13 +818,13 @@ function smart_maintenance_mode_option_page(){
 		  <tr>
 			<th scope="row" valign="top"><label for="start_ip"><?php echo __('Start IP','smart-maintenance-mode'); ?></label></th>
 			<td>
-			  <input type="text" size="25" value="<?php echo((isset($_POST['start_ip']) ? $_POST['start_ip'] : '')); ?>" name="start_ip" id="start_ip"/> <?php echo __('Start IP of the range','smart-maintenance-mode'); ?> <br />
+			  <input type="text" size="25" value="<?php echo((isset($_POST['start_ip']) ? trim($_POST['start_ip']) : '')); ?>" name="start_ip" id="start_ip"/> <?php echo __('Start IP of the range','smart-maintenance-mode'); ?> <br />
 			</td>
 		  </tr>
 		  <tr>
 			<th scope="row" valign="top"><label for="end_ip"><?php echo __('End IP','smart-maintenance-mode'); ?></label></th>
 			<td>
-			  <input type="text" size="25" value="<?php echo((isset($_POST['end_ip']) ? $_POST['end_ip'] : '')); ?>" name="end_ip" id="end_ip"/> <?php echo __('End IP of the range','smart-maintenance-mode'); ?> <br />
+			  <input type="text" size="25" value="<?php echo((isset($_POST['end_ip']) ? trim($_POST['end_ip']) : '')); ?>" name="end_ip" id="end_ip"/> <?php echo __('End IP of the range','smart-maintenance-mode'); ?> <br />
 			</td>
 		  </tr>
 		  <tr>
