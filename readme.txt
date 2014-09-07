@@ -2,8 +2,8 @@
 Contributors: brijeshk89
 Tags: smart maintenance mode, maintenance mode, ip, allow ip, customize, custom maintenence mode, maintenance, mode
 Requires at least: 3.0
-Tested up to: 3.9.1
-Stable tag: 1.4
+Tested up to: 4.0
+Stable tag: 1.4.1
 License: GPLv3 or later
 License URI: http://www.gnu.org/licenses/gpl.html
 Donate link: http://www.wpinspired.com/smart-maintenance-mode/
@@ -14,7 +14,7 @@ Smart Maintenance Mode allows you to put your site under maintenance mode for ot
 
 Smart Maintenance Mode is a plugin which allows you to set your site to maintenance mode so that your readers see the Coming Soon page while you can see the actual development of your site. You can create ranges and define the IP range which will see the actual site using Smart Maintenance Mode.
 
-Features in Smart Maintenance Mode 1.4 include:
+Features in Smart Maintenance Mode 1.4.1 include:
 
 * Enable/Disable Maintenance Mode
 * Add/Remove Custom HTML content
@@ -43,6 +43,10 @@ That's it. You're done!
 3. Sample Maintenance Mode page (Can be customized)
 
 == Changelog ==
+
+= 1.4.1 =
+* Compatible with WordPress 4.0
+* Fixed the issue that caused error while adding IP range when there was whitespace in Start IP or End IP
 
 = 1.4 =
 * Added option to add Countdown to the time when your site will be live

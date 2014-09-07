@@ -1,13 +1,13 @@
 <?php
 /**
  * @package smart-maintenance-mode
- * @version 1.4
+ * @version 1.4.1
  */
 /*
 Plugin Name: Smart Maintenance Mode
 Plugin URI: http://wordpress.org/extend/plugins/smart-maintenance-mode/
 Description: Smart Maintenance Mode is a plugin which allows you to set your site to maintenance mode so that your readers see the Coming Soon page while you can see the actual development of your site. You can create ranges and define the IP range which will see the actual site using Smart Maintenance Mode.
-Version: 1.4
+Version: 1.4.1
 Author: Brijesh Kothari
 Author URI: http://www.wpinspired.com/
 License: GPLv3 or later
@@ -34,7 +34,7 @@ if(!function_exists('add_action')){
 	exit;
 }
 
-define('smm_version', '1.4');
+define('smm_version', '1.4.1');
 
 // Ok so we are now ready to go
 register_activation_hook( __FILE__, 'smart_maintenance_mode_activation');
